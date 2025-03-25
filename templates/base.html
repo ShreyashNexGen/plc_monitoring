@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>  <!-- ✅ Zoom Plugin -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+</head>
+<body>
+    <!-- <nav class="navbar">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/nexgenLogo.png') }}" alt="Nexgen Logo" class="logo">
+        </div>
+        <h1>PLC Monitoring System</h1>
+    </nav> -->
+    <nav class="navbar">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/nexgenLogo.png') }}" alt="Nexgen Logo" class="logo">
+        </div>
+        <h1>PLC Monitoring</h1>
+        <ul>
+            <li><a href="/">Live Chart</a></li>
+            <li><a href="/overview" class="active">Overview</a></li>
+        </ul>
+    </nav>
+    <div class="containerr">
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('overview') }}" ><i class="fas fa-chart-bar"></i> Overview </a></li>
+                <li><a href="{{ url_for('visualization') }}"><i class="fas fa-chart-line"></i> Visualization</a></li>
+            </ul>
+        </aside>
+        <main class="content">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

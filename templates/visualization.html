@@ -1,26 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Visualization</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>  <!-- ✅ Zoom Plugin -->
-</head>
-<body>
-    <nav class="navbar">
-        <h1>PLC Monitoring</h1>
-        <ul>
-            <li><a href="/" class="active">Live Chart</a></li>
-            <li><a href="/overview">Overview</a></li>
-        </ul>
-    </nav>
+{% extends "base.html" %}
 
-    <!-- Live Data Display -->
-    <div class="live-data">
-        <h3>📏 Length: <span id="lengthValue">0</span> m</h3>
-        <h3>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></h3>
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+        <!-- Live Data Display -->
+    <div class="summary summary-content">
+        <p>📏 Length: <span id="lengthValue">0</span> m</p>
+        <p>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></p>
     </div>
 
     <div class="container">
@@ -142,5 +128,4 @@
     fetchChartData();
 
     </script>
-</body>
-</html>
+{% endblock %}

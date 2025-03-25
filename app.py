@@ -108,7 +108,7 @@ def get_paginated_data():
     rows = cursor.fetchall()
     conn.close()
 
-    data = [{"datetime": row[0], "speed": row[1], "length": row[2], "pieces": row[3]} for row in rows]
+    data = [{"datetime": row[2], "speed": row[1], "length": row[3], "pieces": row[4]} for row in rows]
 
     return jsonify({"data": data, "total_pages": (total_records // per_page) + 1})
 
