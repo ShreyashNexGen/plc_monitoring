@@ -1,0 +1,132 @@
+/* General Reset */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #f4f4f4, #eaeaea);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(44, 62, 80, 0.95);
+    padding: 15px 50px;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.navbar h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar ul li {
+    margin: 0 20px;
+}
+
+.navbar ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    padding: 8px 12px;
+    transition: all 0.3s ease-in-out;
+    border-radius: 5px;
+}
+
+.navbar ul li a:hover,
+.navbar ul li a.active {
+    background: #f1c40f;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+/* Main Container */
+.container {
+    width: 65%;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    margin-top: 30px;
+    transition: all 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+}
+
+/* Download Button */
+.download-btn1 {
+    position: relative;
+    float: right;
+    /* top: 15px; */
+    right: 20px;
+    width: auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    background: linear-gradient(45deg, #e67e22, #d35400);
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+    font-weight: bold;
+    z-index: 100;
+}
+
+.download-btn1:hover {
+    background: linear-gradient(45deg, #d35400, #e74c3c);
+    transform: scale(1.1);
+}
+
+/* Live Data Section */
+.live-data {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 85%;
+    }
+
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .navbar ul {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .navbar ul li {
+        margin: 0;
+    }
+}
