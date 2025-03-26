@@ -4,18 +4,18 @@
 
 {% block content %}
         <!-- Live Data Display -->
-    <div class="summary summary-content">
-        <p>📏 Length: <span id="lengthValue">0</span> m</p>
-        <p>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></p>
-    </div>
-
     <div class="container">
         <h2>📊 Data Visualization</h2>
-
+        <div class="live-data">
+            <h3>📏 Length: <span id="lengthValue">0</span> m</h3>
+            <h3>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></h3>
+        </div>
         <!-- Chart Canvas -->
         <div class="chart-container">
             <button onclick="downloadChart()" class="btn download-btn1">📷 Download Chart</button>
             <button onclick="resetZoom()" class="btn reset-btn">🔄 Reset Zoom</button> <!-- ✅ Reset Button -->
+            <button onclick="zoomIn()" class="btn zoom-btn">➕ Zoom In</button>
+            <button onclick="zoomOut()" class="btn zoom-btn">➖ Zoom Out</button>
             <canvas id="plcChart"></canvas>
         </div>
     </div>
@@ -104,6 +104,46 @@
             chart.resetZoom();
         }
     }
+    // Function to zoom in on a specific part (mouse position-based)
+function zoomIn() {
+    if (chart) {
+        chart.zoom({
+            x: 1.5, // Zoom X-axis 1.5x
+            y: 1.5, // Zoom Y-axis 1.5x
+            mode: "xy", // Zoom both axes
+            focalPoint: { x: chart.width / 2, y: chart.height / 2 } // Focus on center
+        });
+    }
+}
+
+// Function to zoom out on a specific part
+function zoomOut() {
+    if (chart) {
+        chart.zoom({
+            x: 0.7, // Zoom out X-axis
+            y: 0.7, // Zoom out Y-axis
+            mode: "xy",
+            focalPoint: { x: chart.width / 2, y: chart.height / 2 } // Focus on center
+        });
+    }
+}
+
+// Enable zoom selection (Click & Drag to zoom in on a region)
+Chart.defaults.plugins.zoom = {
+    zoom: {
+        drag: {
+            enabled: true, // Click and drag to zoom into a specific area
+            backgroundColor: "rgba(0,0,0,0.2)" // Selection color
+        },
+        mode: "xy", // Zoom both X and Y axes
+        speed: 0.05, // Smooth zooming
+    },
+    pan: {
+        enabled: true,
+        mode: "xy", // Allow panning in both directions
+    },
+};
+
 
     // Function to download chart
     function downloadChart() {
