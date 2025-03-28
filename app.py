@@ -75,7 +75,7 @@ def read_plc_data():
             # 🔵 Reset LogData
             client.get_node(TAGS["logData"]).set_value(ua.DataValue(ua.Variant(0, ua.VariantType.Float)))
 
-        time.sleep(1)
+        time.sleep(5)
 
 # 🔴 Serve Only New Data
 @app.route("/api/live-data")
@@ -93,25 +93,72 @@ def live_data():
 
 
 
-# 🔴 Serve Overview Data with Pagination
 @app.route("/api/data")
 def get_paginated_data():
     page = int(request.args.get("page", 1))
-    per_page = 10
+    per_page = int(request.args.get("per_page", 10))  # Default 10, can be changed
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
 
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM data")
+
+    query = "SELECT COUNT(*) FROM data"
+    filters = []
+    
+    if start_date and end_date:
+        query += " WHERE datetime BETWEEN ? AND ?"
+        filters.extend([start_date, end_date])
+
+    cursor.execute(query, tuple(filters) if filters else ())
     total_records = cursor.fetchone()[0]
 
-    cursor.execute("SELECT * FROM data ORDER BY datetime DESC LIMIT ? OFFSET ?", (per_page, (page - 1) * per_page))
+    total_pages = (total_records + per_page - 1) // per_page  # Proper rounding up
+
+    data_query = "SELECT * FROM data"
+    if start_date and end_date:
+        data_query += " WHERE datetime BETWEEN ? AND ?"
+    
+    data_query += " ORDER BY datetime DESC LIMIT ? OFFSET ?"
+
+    cursor.execute(data_query, tuple(filters + [per_page, (page - 1) * per_page]) if filters else (per_page, (page - 1) * per_page))
     rows = cursor.fetchall()
     conn.close()
 
     data = [{"datetime": row[2], "speed": row[1], "length": row[3], "pieces": row[4]} for row in rows]
 
-    return jsonify({"data": data, "total_pages": (total_records // per_page) + 1})
+    return jsonify({
+        "data": data,
+        "total_pages": total_pages,
+        "current_page": page,
+        "per_page": per_page,
+        "total_records": total_records
+    })
 
+
+
+# @app.route("/api/chart-data")
+# def get_chart_data():
+#     start = request.args.get("start")
+#     end = request.args.get("end")
+
+#     query = "SELECT length, SUM(pieces) FROM data"
+#     params = []
+
+#     if start and end:
+#         query += " WHERE datetime BETWEEN ? AND ?"
+#         params = [start, end]
+
+#     query += " GROUP BY length ORDER BY length"
+
+#     conn = sqlite3.connect("data.db")
+#     cursor = conn.cursor()
+#     cursor.execute(query, params)
+#     rows = cursor.fetchall()
+#     conn.close()
+
+#     data = [{"length": row[0], "pieces": row[1]} for row in rows]
+#     return jsonify(data)
 # 🔴 Summary Stats
 @app.route("/api/summary")
 def get_summary():

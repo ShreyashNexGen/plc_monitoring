@@ -22,6 +22,12 @@ body {
     z-index: 100;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
+#barChart {
+    width: 850px !important;  /* Set smaller width */
+    height: 600px !important; /* Set smaller height */
+    display: block;
+    margin: auto; /* Center align */
+}
 
 .navbar h1 {
     margin: 0;

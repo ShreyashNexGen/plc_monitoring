@@ -23,8 +23,8 @@
         </div>
         <h1>PLC Monitoring</h1>
         <ul>
-            <li><a href="/">Live Chart</a></li>
-            <li><a href="/overview" class="active">Overview</a></li>
+            <!-- <li><a href="/">Live Chart</a></li> -->
+            <li><a href="/overview" class="active">Admin</a></li>
         </ul>
     </nav>
     <div class="containerr">
@@ -33,6 +33,7 @@
                 <li><a href="{{ url_for('overview') }}" ><i class="fas fa-chart-bar"></i> Overview </a></li>
                 <li><a href="{{ url_for('visualization') }}"><i class="fas fa-chart-line"></i> Visualization</a></li>
             </ul>
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </aside>
         <main class="content">
             {% block content %}

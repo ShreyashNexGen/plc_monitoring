@@ -10,11 +10,11 @@
             <!-- Filters -->
             <div class="filter-container">
                 <label>📅 Filter by Date:</label>
-                <input type="date" id="startDate">
-                <input type="date" id="endDate">
-                <button onclick="fetchFilteredData()" class="btn">Apply</button>
+                <input type="datetime-local" id="startDate">
+                <input type="datetime-local" id="endDate">
+                <button onclick="fetchData()" class="btn">Apply</button>
             </div>
-
+           
             <!-- Download Excel Button -->
             <button onclick="downloadData()" class="btn download-btn">📥 Download Excel</button>
         </div>
@@ -28,41 +28,79 @@
                 <p>🔢 <b>Total Pieces:</b> <span id="totalPieces">0</span></p>
             </div>
         </div>
-        
-        
 
         <!-- Data Table -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>DateTime</th>
-                        <th>Speed</th>
-                        <th>Length</th>
-                        <th>Pieces</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTable"></tbody>
-            </table>
-        </div>
+ <!-- Toggle Switch -->
+<div class="toggle-container">
+    <span>📋 Table</span>
+    <label class="switch">
+        <input type="checkbox" id="toggleView" onchange="toggleView()">
+        <span class="slider round"></span>
+    </label>
+    <span>📊 Chart</span>
+</div>
 
-        <!-- Pagination Controls -->
-        <div class="pagination">
-            <button onclick="prevPage()" class="btn">⬅ Previous</button>
-            <span id="pageNumber">1</span>
-            <button onclick="nextPage()" class="btn">Next ➡</button>
-        </div>
+<!-- Table View -->
+<div id="tableView">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>DateTime</th>
+                    <th>Speed</th>
+                    <th>Length</th>
+                    <th>Pieces</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
     </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <button onclick="prevPage()" class="btn">⬅ Previous</button>
+        
+         
+       
+            <span>Page: <span id="pageNumber">1</span></span>
+        
+
+        <button onclick="nextPage()" class="btn">Next ➡</button>
+    </div>
+</div>
+
+<!-- Chart View (Hidden by Default) -->
+<div id="chartView" class="hidden">
+    <h3>📊 Length vs Pieces</h3>
+    <canvas id="barChart"></canvas>
+</div>
+
+    </div>
+
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         let currentPage = 1;
+        let barChart;
 
         async function fetchData(page = 1) {
-            const response = await fetch(`/api/data?page=${page}`);
-            const result = await response.json();
-            updateTable(result.data);
-            document.getElementById("pageNumber").innerText = page;
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        let url = `/api/data?page=${page}`;
+        
+        if (startDate && endDate) {
+            url += `&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
         }
+
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        updateTable(result.data);
+        updateChart(result.data);
+        document.getElementById("pageNumber").innerText = result.current_page;
+    }
 
         async function fetchSummary() {
             const response = await fetch("/api/summary");
@@ -77,11 +115,57 @@
             table.innerHTML = "";
             data.forEach(row => {
                 table.innerHTML += `<tr>
-                    <td>${row.datetime}</td>
-                    <td>${row.speed} m/s</td>
+                     <td>${row.speed}</td>
+                    <td>${row.datetime}m/s</td>
+                    
                     <td>${row.length} meters</td>
                     <td>${row.pieces}</td>
                 </tr>`;
+            });
+        }
+
+        function updateChart(data) {
+            const lengthCounts = {};
+            
+            data.forEach(row => {
+                if (lengthCounts[row.length]) {
+                    lengthCounts[row.length] += row.pieces;
+                } else {
+                    lengthCounts[row.length] = row.pieces;
+                }
+            });
+
+            const lengths = Object.keys(lengthCounts);
+            const pieces = Object.values(lengthCounts);
+
+            const ctx = document.getElementById('barChart').getContext('2d');
+
+            if (barChart) {
+                barChart.destroy();
+            }
+
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: lengths,
+                    datasets: [{
+                        label: 'Pieces Count',
+                        data: pieces,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderWidth:1,
+                        maxBarThickness: 10 // Ensures bars don't get too thick
+                        
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
             });
         }
 
@@ -101,7 +185,93 @@
             window.location.href = "/download";
         }
 
+        function fetchFilteredData() {
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+            fetch(`/api/data?start=${startDate}&end=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data.data)) {
+                updateTable(data.data);
+                updateChart(data.data);
+         } });
+        }
+        function toggleView() {
+    const tableView = document.getElementById("tableView");
+    const chartView = document.getElementById("chartView");
+    const toggle = document.getElementById("toggleView");
+
+    if (toggle.checked) {
+        tableView.classList.add("hidden");
+        chartView.classList.remove("hidden");
+    } else {
+        chartView.classList.add("hidden");
+        tableView.classList.remove("hidden");
+    }
+}
+
         fetchData();
         fetchSummary();
     </script>
+<style>/* Toggle Switch Styling */
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin: 0 10px;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    /* Hide and Show Effect */
+    .hidden {
+        display: none;
+    }
+    </style>
 {% endblock %}
