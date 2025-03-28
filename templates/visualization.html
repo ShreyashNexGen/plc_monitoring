@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard{% endblock %}
-
 {% block content %}
         <!-- Live Data Display -->
     <div class="container">
@@ -19,16 +17,13 @@
             <canvas id="plcChart"></canvas>
         </div>
     </div>
-
     <script>
     let chart;
     let dataBuffer = { timestamps: [], speeds: [] };
-
     // Function to fetch PLC data
     async function fetchChartData() {
         const response = await fetch("/api/live-data");
         const rawData = await response.json();
-
         console.log("Fetched Data:", rawData); // Debugging log
 
         rawData.forEach(entry => {
@@ -69,9 +64,30 @@
                 responsive: true,
                 animation: false, // Disable animation for real-time updates
                 scales: {
-                    x: { title: { display: true, text: "Time" } },
-                    y: { title: { display: true, text: "Speed (m/s)" } }
-                },
+                    x: { 
+                        title: { 
+                            display: true, 
+                            text: "🕒 Time", // Add an icon for better visibility (optional)
+                            color: "#ff5733",  // Change text color (e.g., orange-red)
+                            font: {
+                                size: 16,  // Increase font size
+                                weight: "bold"  // Make text bold
+                            }
+                        } 
+                    },
+                    y: { 
+                        title: { 
+                            display: true, 
+                            text: "⚡ Speed (m/s)", 
+                            color: "#3498db",  // Change text color (e.g., blue)
+                            font: {
+                                size: 16,  
+                                weight: "bold"  
+                            }
+                        }
+                    }
+                }
+                ,
                 plugins: {
                     zoom: {
                         pan: {
