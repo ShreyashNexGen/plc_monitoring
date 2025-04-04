@@ -17,28 +17,57 @@
         </div>
         <h1>PLC Monitoring System</h1>
     </nav> -->
+    <!-- <nav class="navbar">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/nexgenLogo.png') }}" alt="Nexgen Logo" class="logo">
+        <h1>PLC Monitoring</h1>
+        <ul>
+            <img src="{{ url_for('static', filename='images/logo-n.png') }}" alt="Nexgen Logo" class="logo1">
+        </ul>
+    </nav> -->
     <nav class="navbar">
+        <button id="sidebarToggle" class="toggle-btn">☰</button>
         <div class="logo-container">
             <img src="{{ url_for('static', filename='images/nexgenLogo.png') }}" alt="Nexgen Logo" class="logo">
         </div>
-        <h1>PLC Monitoring</h1>
-        <ul>
-            <!-- <li><a href="/">Live Chart</a></li> -->
-            <li><a href="/overview" class="active">Admin</a></li>
-        </ul>
+        <h1 class="navbar-title">PLC Monitoring</h1>
+        <div class="right-logo-container">
+            <img src="{{ url_for('static', filename='images/logo-n.png') }}" alt="Nexgen Logo" class="logo1">
+        </div>
     </nav>
     <div class="containerr">
-        <aside class="sidebar">
-            <ul>
-                <li><a href="{{ url_for('overview') }}" ><i class="fas fa-chart-bar"></i> Overview </a></li>
-                <li><a href="{{ url_for('visualization') }}"><i class="fas fa-chart-line"></i> Visualization</a></li>
+        <aside id="sidebar" class="sidebar">
+            <ul class="sidebar-menu">
+                {% if session.user %}
+                    <li><a href="{{ url_for('overview') }}"><i class="fas fa-chart-bar"></i> Overview</a></li>
+                    <li><a href="{{ url_for('visualization') }}"><i class="fas fa-chart-line"></i> Visualization</a></li>
+                    <li><a href="{{ url_for('report') }}"><i class="fas fa-chart-line"></i> Report</a></li>
+                    <a href="{{ url_for('logout') }}" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
+                {% endif %}
             </ul>
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </aside>
-        <main class="content">
+        <main id="main-content" class="content">
             {% block content %}
             {% endblock %}
         </main>
     </div>
+    <script>
+        // Sidebar Toggle Functionality
+        document.getElementById("sidebarToggle").addEventListener("click", function() {
+            let sidebar = document.getElementById("sidebar");
+            let content = document.getElementById("main-content");
+
+            if (sidebar.classList.contains("collapsed")) {
+                sidebar.classList.remove("collapsed");  // Show sidebar
+                content.classList.remove("full-width");  // Shrink content
+            } else {
+                sidebar.classList.add("collapsed");  // Hide sidebar
+                content.classList.add("full-width");   // Expand content
+            }
+        });
+    </script>
 </body>
 </html>

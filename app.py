@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for, session, flash
 import sqlite3
 import pandas as pd
 import threading
@@ -6,7 +6,9 @@ import time
 from opcua import Client,ua
 from datetime import datetime
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
+app.secret_key = "supersecretkey"  # Change this to a strong secret key
 
 # 🔴 Connect to OPC UA Server
 OPC_SERVER_URL = "opc.tcp://192.168.0.1:4840"
@@ -22,6 +24,14 @@ def init_db():
             speed REAL,
             length REAL,
             pieces INTEGER
+        )
+    """)
+    # Table for User Authentication
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
         )
     """)
     conn.commit()
@@ -91,7 +101,72 @@ def live_data():
     
     return jsonify([])  # No new data to send
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        hashed_password = generate_password_hash(password)
 
+        conn = sqlite3.connect("data.db")
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+            conn.commit()
+            flash("Registration successful! Please log in.", "success")
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            flash("Username already exists. Choose a different one.", "danger")
+        finally:
+            conn.close()
+
+    return render_template("register.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = sqlite3.connect("data.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if user and check_password_hash(user[2], password):
+            session["user"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("overview"))
+        else:
+            flash("Invalid username or password.", "danger")
+
+    return render_template("login.html")
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
+
+# 🔴 Middleware to Protect Routes
+def login_required(route_function):
+    def wrapper(*args, **kwargs):
+        if "user" not in session:
+            flash("You need to log in first.", "warning")
+            return redirect(url_for("login"))
+        return route_function(*args, **kwargs)
+    wrapper.__name__ = route_function.__name__
+    return wrapper
+# 🔴 Serve Pages
+@app.route("/")
+@login_required
+def visualization():
+    return render_template("visualization.html")
+@app.route("/overview")
+@login_required
+def overview():
+    return render_template("overview.html")
 
 @app.route("/api/data")
 def get_paginated_data():
@@ -182,17 +257,68 @@ def download_data():
     df.to_excel("data.xlsx", index=False)
     return send_file("data.xlsx", as_attachment=True)
 
-# 🔴 Serve Pages
-@app.route("/")
-def visualization():
-    return render_template("visualization.html")
 
-@app.route("/overview")
-def overview():
-    return render_template("overview.html")
-
-if __name__ == "__main__":
+# @app.route("/overview")
+# def overview():
+#     return render_template("overview.html")
+# def fetch_report_data():
+#     """Fetch production report data from the database"""
+#     conn = sqlite3.connect("data.db")
+#     cursor = conn.cursor()
+#     query = """
+#     SELECT Thickness, Outer_Diameter, Length, Speed, Date_Time, Breakdown,
+#            Row_Change, Maintenance, Pieces, Roof_Cuts, Wastage, Type_of_Tube
+#     FROM Production_Report
+#     """
     
+#     cursor.execute(query)
+#     data = cursor.fetchone()  # Fetch the first row (adjust if needed)
+
+#     conn.close()
+
+#     if data:
+#         report_data = {
+#             "thickness": data[0],
+#             "outer_diameter": data[1],
+#             "length": data[2],
+#             "speed": data[3],
+#             "date_time": data[4],
+#             "breakdown": data[5],
+#             "row_change": data[6],
+#             "maintenance": data[7],
+#             "pieces": data[8],
+#             "roof_cuts": data[9],
+#             "wastage": data[10],
+#             "type_of_tube": data[11]
+#         }
+#         return report_data
+#     return None
+# @app.route('/report')
+# @login_required
+# def report_page():
+#     """Render the report page with dynamic data"""
+#     report_data = fetch_report_data()
+#     return render_template('report.html', report=report_data)
+@app.route("/report")
+@login_required
+def report():
+    return render_template("report.html")
+
+# @app.route('/download-report')
+# def download_report():
+    """Generate and download the report as a CSV file"""
+    report_data = fetch_report_data()
+
+    if not report_data:
+        return "No data available", 404
+
+    df = pd.DataFrame([report_data])
+    file_path = "report.csv"
+    df.to_csv(file_path, index=False)
+
+    return send_file(file_path, as_attachment=True)
+if __name__ == "__main__":
+
    if __name__ == "__main__":
     threading.Thread(target=read_plc_data, daemon=True).start()
     app.run(debug=True, use_reloader=False)

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Production Report{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="table-container">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th onclick="showFilter(this, 'thickness')">📏 Thickness</th>
+                        <th onclick="showFilter(this, 'outer_diameter')">🔄 Outer Diameter</th>
+                        <th onclick="showFilter(this, 'length')">📏 Length</th>
+                        <th onclick="showFilter(this, 'speed')">⚡ Speed</th>
+                        <th onclick="showFilter(this, 'date_time')">📅 Date Time</th>
+                        <th onclick="showFilter(this, 'breakdown')">🛑 Breakdown</th>
+                        <th onclick="showFilter(this, 'row_change')">🔄 Row Change</th>
+                        <th onclick="showFilter(this, 'maintenance')">🔧 Maintenance</th>
+                        <th onclick="showFilter(this, 'pieces')">🔢 Pieces</th>
+                        <th onclick="showFilter(this, 'roof_cuts')">✂ Roof Cuts</th>
+                        <th onclick="showFilter(this, 'wastage')">♻ Wastage</th>
+                        <th onclick="showFilter(this, 'type_of_tube')">🛠 Type of Tube</th>
+                    </tr>
+                </thead>
+                <tbody id="report-body">
+                    <tr>
+                        <td>4.5</td>
+                        <td>50</td>
+                        <td>1200</td>
+                        <td>15</td>
+                        <td>2025-03-31 14:32</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>Planned</td>
+                        <td>500</td>
+                        <td>5</td>
+                        <td>2%</td>
+                        <td>Seamless</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Filter Popup -->
+        <div id="filter-popup" class="filter-popup">
+            <label for="filter-value">Enter Value:</label>
+            <input type="number" id="filter-value">
+            <select id="filter-condition">
+                <option value="=">=</option>
+                <option value=">">></option>
+                <option value="<"><</option>
+            </select>
+            <button onclick="applyFilter()">Apply</button>
+        </div>
+        
+        <button class="download-btn">⬇ Download Report</button>
+    </div>
+    <style>
+        /* Report Table: Clean, Bordered & Readable */
+/* Table Container */
+.table-container {
+    width: 95%;
+    margin: auto;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+/* Report Table */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f8f9fa;
+    color: #333;
+    border: 2px solid #004080;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.report-table th, .report-table td {
+    padding: 15px;
+    text-align: center;
+    border: 2px solid #004080;
+}
+
+/* Header Styling */
+.report-table thead {
+    background: #004080;
+    color: white;
+    cursor: pointer;
+}
+
+.report-table tbody tr:nth-child(even) {
+    background: #e6f2ff;
+}
+
+.report-table tbody tr:hover {
+    background: #cce0ff;
+}
+
+/* Filter Popup */
+.filter-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    display: none;
+    flex-direction: column;
+}
+
+.filter-popup input, .filter-popup select {
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+}
+
+.filter-popup button {
+    background: #004080;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-popup button:hover {
+    background: #002b5c;
+}
+
+
+    </style>
+    <script>
+        let currentColumn = null;
+
+// Show Filter Popup
+function showFilter(header, column) {
+    currentColumn = column;
+    document.getElementById('filter-popup').style.display = 'flex';
+}
+
+// Apply Filter
+function applyFilter() {
+    let filterValue = document.getElementById("filter-value").value;
+    let condition = document.getElementById("filter-condition").value;
+    
+    let table = document.getElementById("report-body");
+    let rows = table.getElementsByTagName("tr");
+    
+    let columnIndex = [...document.querySelectorAll("th")].findIndex(th => th.innerText.includes(currentColumn));
+
+    for (let row of rows) {
+        let cellValue = parseFloat(row.cells[columnIndex].innerText) || 0;
+
+        if ((condition === "=" && cellValue != filterValue) ||
+            (condition === ">" && cellValue <= filterValue) ||
+            (condition === "<" && cellValue >= filterValue)) {
+            row.style.display = "none";
+        } else {
+            row.style.display = "";
+        }
+    }
+
+    document.getElementById('filter-popup').style.display = 'none';
+}
+
+    </script>
+{% endblock %}

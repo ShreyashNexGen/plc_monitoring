@@ -1,11 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard{% endblock %}
-
 {% block content %}
     <div class="container">
         <h2>📊 PLC Data Overview</h2>
-
         <div class="top-controls">
             <!-- Filters -->
             <div class="filter-container">
@@ -18,7 +15,6 @@
             <!-- Download Excel Button -->
             <button onclick="downloadData()" class="btn download-btn">📥 Download Excel</button>
         </div>
-
         <!-- Summary Stats -->
         <div class="summary">
             <div class="summary-content">
@@ -28,7 +24,6 @@
                 <p>🔢 <b>Total Pieces:</b> <span id="totalPieces">0</span></p>
             </div>
         </div>
-
         <!-- Data Table -->
  <!-- Toggle Switch -->
 <div class="toggle-container">
@@ -39,7 +34,6 @@
     </label>
     <span>📊 Chart</span>
 </div>
-
 <!-- Table View -->
 <div id="tableView">
     <div class="table-container">
@@ -55,53 +49,37 @@
             <tbody id="dataTable"></tbody>
         </table>
     </div>
-
     <!-- Pagination Controls -->
     <div class="pagination">
         <button onclick="prevPage()" class="btn">⬅ Previous</button>
-        
-         
-       
             <span>Page: <span id="pageNumber">1</span></span>
-        
-
         <button onclick="nextPage()" class="btn">Next ➡</button>
     </div>
 </div>
-
 <!-- Chart View (Hidden by Default) -->
 <div id="chartView" class="hidden">
     <h3>📊 Length vs Pieces</h3>
     <canvas id="barChart"></canvas>
 </div>
-
     </div>
-
     <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
         let currentPage = 1;
         let barChart;
-
         async function fetchData(page = 1) {
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
-
         let url = `/api/data?page=${page}`;
-        
         if (startDate && endDate) {
             url += `&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
         }
-
         const response = await fetch(url);
         const result = await response.json();
-        
         updateTable(result.data);
         updateChart(result.data);
         document.getElementById("pageNumber").innerText = result.current_page;
     }
-
         async function fetchSummary() {
             const response = await fetch("/api/summary");
             const data = await response.json();
@@ -109,24 +87,20 @@
             document.getElementById("totalLength").innerText = data.total_length || "0";
             document.getElementById("totalPieces").innerText = data.total_pieces || "0";
         }
-
         function updateTable(data) {
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
             data.forEach(row => {
                 table.innerHTML += `<tr>
-                     <td>${row.speed}</td>
+                    <td>${row.speed}</td>
                     <td>${row.datetime}m/s</td>
-                    
                     <td>${row.length} meters</td>
                     <td>${row.pieces}</td>
                 </tr>`;
             });
         }
-
         function updateChart(data) {
             const lengthCounts = {};
-            
             data.forEach(row => {
                 if (lengthCounts[row.length]) {
                     lengthCounts[row.length] += row.pieces;
@@ -134,16 +108,12 @@
                     lengthCounts[row.length] = row.pieces;
                 }
             });
-
             const lengths = Object.keys(lengthCounts);
             const pieces = Object.values(lengthCounts);
-
             const ctx = document.getElementById('barChart').getContext('2d');
-
             if (barChart) {
                 barChart.destroy();
             }
-
             barChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -155,36 +125,52 @@
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1,
                         borderWidth:1,
-                        maxBarThickness: 10 // Ensures bars don't get too thick
-                        
+                        maxBarThickness: 10 // Ensures bars don't get too thick  
                     }]
                 },
                 options: {
                     scales: {
-                        y: {
-                            beginAtZero: true
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: " Length", // Add an icon for better visibility (optional)
+                                color: "#ff5733",  // Change text color (e.g., orange-red)
+                                font: {
+                                    size: 16,  // Increase font size
+                                    weight: "bold"  // Make text bold
+                                }
+                            } 
+                        },
+                        y: { 
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: " Pieces", 
+                                color: "#3498db",  // Change text color (e.g., blue)
+                                font: {
+                                    size: 16,  
+                                    weight: "bold"  
+                                }
+                            }
                         }
                     }
+                    ,
                 }
             });
         }
-
         function prevPage() {
             if (currentPage > 1) {
                 currentPage--;
                 fetchData(currentPage);
             }
         }
-
         function nextPage() {
             currentPage++;
             fetchData(currentPage);
         }
-
         function downloadData() {
             window.location.href = "/download";
         }
-
         function fetchFilteredData() {
             const startDate = document.getElementById("startDate").value;
             const endDate = document.getElementById("endDate").value;
@@ -200,7 +186,6 @@
     const tableView = document.getElementById("tableView");
     const chartView = document.getElementById("chartView");
     const toggle = document.getElementById("toggleView");
-
     if (toggle.checked) {
         tableView.classList.add("hidden");
         chartView.classList.remove("hidden");
@@ -209,7 +194,6 @@
         tableView.classList.remove("hidden");
     }
 }
-
         fetchData();
         fetchSummary();
     </script>
@@ -222,7 +206,6 @@
         font-size: 18px;
         font-weight: bold;
     }
-    
     .switch {
         position: relative;
         display: inline-block;
@@ -230,13 +213,11 @@
         height: 24px;
         margin: 0 10px;
     }
-    
     .switch input {
         opacity: 0;
         width: 0;
         height: 0;
     }
-    
     .slider {
         position: absolute;
         cursor: pointer;
@@ -248,7 +229,6 @@
         transition: 0.4s;
         border-radius: 34px;
     }
-    
     .slider:before {
         position: absolute;
         content: "";
@@ -260,15 +240,12 @@
         transition: 0.4s;
         border-radius: 50%;
     }
-    
     input:checked + .slider {
         background-color: #2196F3;
     }
-    
     input:checked + .slider:before {
         transform: translateX(26px);
     }
-    
     /* Hide and Show Effect */
     .hidden {
         display: none;

@@ -3,185 +3,179 @@
 {% block content %}
         <!-- Live Data Display -->
     <div class="container">
-        <h2>📊 Data Visualization</h2>
         <div class="live-data">
+            <h2>📊 Data Visualization</h2>
             <h3>📏 Length: <span id="lengthValue">0</span> m</h3>
             <h3>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></h3>
         </div>
         <!-- Chart Canvas -->
-        <div class="chart-container">
+        <!-- <div class="chart-container">
             <button onclick="downloadChart()" class="btn download-btn1">📷 Download Chart</button>
-            <button onclick="resetZoom()" class="btn reset-btn">🔄 Reset Zoom</button> <!-- ✅ Reset Button -->
+            <button onclick="resetZoom()" class="btn reset-btn">🔄 Reset Zoom</button> 
             <button onclick="zoomIn()" class="btn zoom-btn">➕ Zoom In</button>
             <button onclick="zoomOut()" class="btn zoom-btn">➖ Zoom Out</button>
             <canvas id="plcChart"></canvas>
+        </div> -->
+        <!-- Graphs Section -->
+    <div class="charts-wrapper">
+        <div class="chart-card">
+            <h2>📈 Speed Over Time</h2>
+            <canvas id="plcChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h2>📊 Pieces vs Length</h2>
+            <canvas id="barChart"></canvas>
         </div>
     </div>
+    </div>
     <script>
-    let chart;
-    let dataBuffer = { timestamps: [], speeds: [] };
-    // Function to fetch PLC data
-    async function fetchChartData() {
-        const response = await fetch("/api/live-data");
-        const rawData = await response.json();
-        console.log("Fetched Data:", rawData); // Debugging log
-
-        rawData.forEach(entry => {
-            dataBuffer.timestamps.push(entry.datetime);
-            dataBuffer.speeds.push(entry.speed);
-            
-            // ✅ Update Length & Pieces Counter Live
-            document.getElementById("lengthValue").innerText = entry.length.toFixed(2);
-            document.getElementById("piecesCounterValue").innerText = entry.piecesCounter;
-        });
-
-        // Ensure buffer does not exceed 1000 entries
-        if (dataBuffer.timestamps.length > 1000) {
-            dataBuffer.timestamps = dataBuffer.timestamps.slice(-1000);
-            dataBuffer.speeds = dataBuffer.speeds.slice(-1000);
-        }
-
-        updateChart();
-    }
-
-    // Function to render chart
-    function renderChart() {
-        const ctx = document.getElementById("plcChart").getContext("2d");
-        chart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: dataBuffer.timestamps,
-                datasets: [{
-                    label: "Speed (m/s)",
-                    data: dataBuffer.speeds,
-                    borderColor: "#3498db",
-                    backgroundColor: "rgba(52, 152, 219, 0.2)",
-                    borderWidth: 2,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: false, // Disable animation for real-time updates
-                scales: {
-                    x: { 
-                        title: { 
-                            display: true, 
-                            text: "🕒 Time", // Add an icon for better visibility (optional)
-                            color: "#ff5733",  // Change text color (e.g., orange-red)
-                            font: {
-                                size: 16,  // Increase font size
-                                weight: "bold"  // Make text bold
-                            }
-                        } 
-                    },
-                    y: { 
-                        title: { 
-                            display: true, 
-                            text: "⚡ Speed (m/s)", 
-                            color: "#3498db",  // Change text color (e.g., blue)
-                            font: {
-                                size: 16,  
-                                weight: "bold"  
-                            }
-                        }
-                    }
-                }
-                ,
-                plugins: {
-                    zoom: {
-                        pan: {
-                            enabled: true,  // ✅ Allow panning
-                            mode: "x",      // Pan along x-axis
-                        },
-                        zoom: {
-                            wheel: { enabled: true },  // ✅ Enable zooming with mouse wheel
-                            pinch: { enabled: true },  // ✅ Enable zooming with pinch gestures
-                            mode: "x",                 // Zoom along x-axis
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // Function to update chart
-    function updateChart() {
-        if (chart) {
-            chart.data.labels = dataBuffer.timestamps;
-            chart.data.datasets[0].data = dataBuffer.speeds;
-            chart.update();
-        }
-    }
-
-    // Function to reset zoom
-    function resetZoom() {
-        if (chart) {
-            chart.resetZoom();
-        }
-    }
-    // Function to zoom in on a specific part (mouse position-based)
-function zoomIn() {
-    if (chart) {
-        chart.zoom({
-            x: 1.5, // Zoom X-axis 1.5x
-            y: 1.5, // Zoom Y-axis 1.5x
-            mode: "xy", // Zoom both axes
-            focalPoint: { x: chart.width / 2, y: chart.height / 2 } // Focus on center
-        });
-    }
-}
-
-// Function to zoom out on a specific part
-function zoomOut() {
-    if (chart) {
-        chart.zoom({
-            x: 0.7, // Zoom out X-axis
-            y: 0.7, // Zoom out Y-axis
-            mode: "xy",
-            focalPoint: { x: chart.width / 2, y: chart.height / 2 } // Focus on center
-        });
-    }
-}
-
-// Enable zoom selection (Click & Drag to zoom in on a region)
-Chart.defaults.plugins.zoom = {
-    zoom: {
-        drag: {
-            enabled: true, // Click and drag to zoom into a specific area
-            backgroundColor: "rgba(0,0,0,0.2)" // Selection color
-        },
-        mode: "xy", // Zoom both X and Y axes
-        speed: 0.05, // Smooth zooming
-    },
-    pan: {
-        enabled: true,
-        mode: "xy", // Allow panning in both directions
-    },
-};
-
-
-    // Function to download chart
-    function downloadChart() {
-        const chartCanvas = document.getElementById("plcChart");
+        let lineChart, barChart;
+        let dataBuffer = { timestamps: [], speeds: [], lengths: [], pieces: [] };
         
-        if (!chartCanvas) {
-            console.error("Chart element not found!");
-            return;
+        async function fetchChartData() {
+            const response = await fetch("/api/live-data");
+            const rawData = await response.json();
+        
+            rawData.forEach(entry => {
+                dataBuffer.timestamps.push(entry.datetime);
+                dataBuffer.speeds.push(entry.speed);
+                dataBuffer.lengths.push(entry.length);
+                dataBuffer.pieces.push(entry.piecesCounter);
+        
+                document.getElementById("lengthValue").innerText = entry.length.toFixed(2);
+                document.getElementById("piecesCounterValue").innerText = entry.piecesCounter;
+            });
+        
+            if (dataBuffer.timestamps.length > 1000) {
+                dataBuffer.timestamps = dataBuffer.timestamps.slice(-1000);
+                dataBuffer.speeds = dataBuffer.speeds.slice(-1000);
+                dataBuffer.lengths = dataBuffer.lengths.slice(-1000);
+                dataBuffer.pieces = dataBuffer.pieces.slice(-1000);
+            }
+        
+            updateCharts();
         }
+        
+        function renderCharts() {
+            const lineCtx = document.getElementById("plcChart").getContext("2d");
+            lineChart = new Chart(lineCtx, {
+                type: "line",
+                data: {
+                    labels: dataBuffer.timestamps,
+                    datasets: [{
+                        label: "Speed (m/s)",
+                        data: dataBuffer.speeds,
+                        borderColor: "#00c3ff",
+                        backgroundColor: "rgba(0, 195, 255, 0.2)",
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: "🕒 Time" } },
+                        y: { title: { display: true, text: "⚡ Speed (m/s)" } }
+                    }
+                }
+            });
+        
+            const barCtx = document.getElementById("barChart").getContext("2d");
+            barChart = new Chart(barCtx, {
+                type: "bar",
+                data: {
+                    labels: ["Length (m)", "Pieces"],
+                    datasets: [{
+                        label: "Pieces vs Length",
+                        data: [0, 0],
+                        backgroundColor: ["#ff5733", "#00c3ff"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        function updateCharts() {
+            if (lineChart) {
+                lineChart.data.labels = dataBuffer.timestamps;
+                lineChart.data.datasets[0].data = dataBuffer.speeds;
+                lineChart.update();
+            }
+        
+            if (barChart) {
+                const latestLength = dataBuffer.lengths[dataBuffer.lengths.length - 1] || 0;
+                const latestPieces = dataBuffer.pieces[dataBuffer.pieces.length - 1] || 0;
+                barChart.data.datasets[0].data = [latestLength, latestPieces];
+                barChart.update();
+            }
+        }
+        
+        setInterval(fetchChartData, 2000);
+        renderCharts();
+        fetchChartData();
+        </script>
+        <style>
+            /* Chart Section */
+.charts-wrapper {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
 
-        const link = document.createElement("a");
-        link.href = chartCanvas.toDataURL("image/png"); // Convert chart to image
-        link.download = "plc_chart.png"; // Set file name
-        link.click();
+/* Chart Box */
+.chart-card {
+    border: 2px solid black;  
+    flex: 1;
+    background: rgb(133 187 245 / 40%);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
+    width: 550px;  /* FIXED WIDTH */
+    height: 500px; /* FIXED HEIGHT */
+    max-width: 600px;
+    /*backdrop-filter: blur(10px);*/
+    overflow: hidden; /* Prevents graph overflow */
+    position: relative;
+}
+.chart-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 6px 20px rgba(255, 255, 255, 0.2);
+}
+/* Ensure Canvas is Scaled Correctly */
+.chart-card canvas {
+    width: 100% !important;
+    height: 400px !important;
+    display: block;
+}
+
+/* Prevent Graph Lines from Exceeding Container */
+.chart-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevents axes from overflowing */
+    padding: 10px; /* Space for axis labels */
+}
+
+/* Responsive Fixes */
+@media (max-width: 1200px) {
+    .charts-wrapper {
+        flex-direction: column;
     }
+    .chart-card {
+        max-width: 90%;
+        min-width: unset;
+    }
+}
 
-    // Fetch new data every 2 seconds
-    setInterval(fetchChartData, 2000);
-
-    // Initialize
-    renderChart();
-    fetchChartData();
-
-    </script>
+        </style>
 {% endblock %}

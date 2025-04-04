@@ -66,13 +66,32 @@ body {
     color: #2c3e50;
     font-weight: bold;
 }
+/* Left Logo */
 .logo-container {
+    flex: 1; /* Takes up available space */
     display: flex;
     align-items: center;
 }
-.logo {
-    height: 50px; /* Adjust size as needed */
-    margin-right: 15px;
+
+/* Center Title */
+.navbar-title {
+    flex: 2; /* Takes more space for centering */
+    text-align: center;
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Right Logo */
+.right-logo-container {
+    flex: 1; /* Takes up available space */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Logo Styles */
+.logo, .logo1 {
+    height: 50px;
 }
 .containerr {
     display: flex;
@@ -89,7 +108,11 @@ body {
     height: calc(100vh - 60px); /* Adjust for navbar */
     overflow-y: auto;
 }
-
+.sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
 .content {
     flex-grow: 1; /* Takes all available space */
     margin-left: 200px; /* Same as sidebar width */
@@ -97,12 +120,23 @@ body {
     height: calc(100vh - 120px); /* Adjust for navbar */
     overflow-y: auto;
 }
+.content.full-width {
+    margin-left: 0;
+    width: 100%;
+}
 .sidebar ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
+.toggle-btn {
+    background: none;
+    color: white;
+    margin-right: 20px;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
 .sidebar li {
     margin-bottom: 10px;
 }
@@ -110,7 +144,7 @@ body {
     font-size: 18px; /* Icon size */
 }
 .sidebar a {
-    display: inline-block;
+    display: block;
     text-decoration: none;
     color: white;
     background: #3498db;
@@ -412,4 +446,135 @@ td {
         padding: 10px;
         font-size: 14px;
     }
+}
+/* Unique styling for the login form */
+.login-container {
+    width: 400px;
+    margin: 80px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-heading {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-label {
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.login-input {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.login-btn {
+    margin: 0 auto; display: block;width:40%;
+    background: #6200ea;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    background: #4b00b5;
+}
+
+.login-footer {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.register-link {
+    color: #6200ea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.register-link:hover {
+    text-decoration: underline;
+}
+.register-container {
+    width: 350px;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 50px auto;
+}
+
+.register-container h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+.register-container label {
+    display: block;
+    text-align: left;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #444;
+}
+
+.register-container input {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+}
+
+.register-container button {
+    width: 50%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0d6efd;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.register-container button:hover {
+    background-color: #0056b3;
+}
+
+.register-container p {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.register-container a {
+    color: #0d6efd;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.register-container a:hover {
+    text-decoration: underline;
 }
