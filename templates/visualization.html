@@ -1,22 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-        <!-- Live Data Display -->
-    <div class="container">
-        <div class="live-data">
-            <h2>📊 Data Visualization</h2>
-            <h3>📏 Length: <span id="lengthValue">0</span> m</h3>
-            <h3>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></h3>
-        </div>
-        <!-- Chart Canvas -->
-        <!-- <div class="chart-container">
-            <button onclick="downloadChart()" class="btn download-btn1">📷 Download Chart</button>
-            <button onclick="resetZoom()" class="btn reset-btn">🔄 Reset Zoom</button> 
-            <button onclick="zoomIn()" class="btn zoom-btn">➕ Zoom In</button>
-            <button onclick="zoomOut()" class="btn zoom-btn">➖ Zoom Out</button>
-            <canvas id="plcChart"></canvas>
-        </div> -->
-        <!-- Graphs Section -->
+<div class="container">
+    <div class="live-data">
+        <h2>📊 Data Visualization</h2>
+        <h3>📏 Length: <span id="lengthValue">0</span> m</h3>
+        <h3>🔢 Pieces Counter: <span id="piecesCounterValue">0</span></h3>
+    </div>
+
     <div class="charts-wrapper">
         <div class="chart-card">
             <h2>📈 Speed Over Time</h2>
@@ -27,103 +18,215 @@
             <canvas id="barChart"></canvas>
         </div>
     </div>
-    </div>
-    <script>
-        let lineChart, barChart;
-        let dataBuffer = { timestamps: [], speeds: [], lengths: [], pieces: [] };
-        
-        async function fetchChartData() {
-            const response = await fetch("/api/live-data");
-            const rawData = await response.json();
-        
-            rawData.forEach(entry => {
-                dataBuffer.timestamps.push(entry.datetime);
-                dataBuffer.speeds.push(entry.speed);
-                dataBuffer.lengths.push(entry.length);
-                dataBuffer.pieces.push(entry.piecesCounter);
-        
-                document.getElementById("lengthValue").innerText = entry.length.toFixed(2);
-                document.getElementById("piecesCounterValue").innerText = entry.piecesCounter;
-            });
-        
-            if (dataBuffer.timestamps.length > 1000) {
-                dataBuffer.timestamps = dataBuffer.timestamps.slice(-1000);
-                dataBuffer.speeds = dataBuffer.speeds.slice(-1000);
-                dataBuffer.lengths = dataBuffer.lengths.slice(-1000);
-                dataBuffer.pieces = dataBuffer.pieces.slice(-1000);
-            }
-        
-            updateCharts();
-        }
-        
-        function renderCharts() {
-            const lineCtx = document.getElementById("plcChart").getContext("2d");
-            lineChart = new Chart(lineCtx, {
-                type: "line",
-                data: {
-                    labels: dataBuffer.timestamps,
-                    datasets: [{
-                        label: "Speed (m/s)",
-                        data: dataBuffer.speeds,
-                        borderColor: "#00c3ff",
-                        backgroundColor: "rgba(0, 195, 255, 0.2)",
-                        borderWidth: 2,
-                        fill: true
-                    }]
+</div>
+
+<script>
+let lineChart, barChart;
+let dataBuffer = { timestamps: [], speeds: [], lengths: [], pieces: [] };
+
+async function fetchChartData() {
+    const response = await fetch("/api/live-data");
+    const rawData = await response.json();
+
+    rawData.forEach(entry => {
+        dataBuffer.timestamps.push(entry.datetime);
+        dataBuffer.speeds.push(entry.speed);
+        dataBuffer.lengths.push(entry.length);
+        dataBuffer.pieces.push(entry.piecesCounter);
+
+        document.getElementById("lengthValue").innerText = entry.length.toFixed(2);
+        document.getElementById("piecesCounterValue").innerText = entry.piecesCounter;
+    });
+
+    if (dataBuffer.timestamps.length > 1000) {
+        dataBuffer.timestamps = dataBuffer.timestamps.slice(-1000);
+        dataBuffer.speeds = dataBuffer.speeds.slice(-1000);
+        dataBuffer.lengths = dataBuffer.lengths.slice(-1000);
+        dataBuffer.pieces = dataBuffer.pieces.slice(-1000);
+    }
+
+    updateCharts();
+}
+
+function renderCharts() {
+    const lineCtx = document.getElementById("plcChart").getContext("2d");
+    const gradient = lineCtx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(0, 195, 255, 0.5)');
+    gradient.addColorStop(1, 'rgba(0, 195, 255, 0)');
+
+    lineChart = new Chart(lineCtx, {
+        type: "line",
+        data: {
+            labels: dataBuffer.timestamps,
+            datasets: [{
+                label: "Speed (m/s)",
+                data: dataBuffer.speeds,
+                borderColor: "#00c3ff",
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                title: {
+                    display: true,
+                    // text: '📈 Speed vs Time',
+                    font: { size: 20 },
+                    padding: { top: 10, bottom: 10 }
                 },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { title: { display: true, text: "🕒 Time" } },
-                        y: { title: { display: true, text: "⚡ Speed (m/s)" } }
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: "🕒 Time (hh:mm:ss)",
+                        font: { size: 14 }
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: "⚡ Speed (m/s)",
+                        font: { size: 14 }
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    const barCtx = document.getElementById("barChart").getContext("2d");
+barChart = new Chart(barCtx, {
+    type: "bar",
+    data: {
+        labels: ["📏 Length (m)", "🔢 Pieces"],
+        datasets: [{
+            label: "📈 Live Production Data",
+            data: [0, 0],
+            backgroundColor: ["rgba(243, 156, 18, 0.6)", "rgba(52, 152, 219, 0.6)"],
+            borderColor: ["#e67e22", "#2980b9"],
+            borderWidth: 1,
+            maxBarThickness: 50
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+            title: {
+                display: true,
+                // text: "📊 Length vs Pieces Count",
+                font: {
+                    size: 20,
+                    weight: "bold"
+                },
+                padding: { top: 10, bottom: 10 },
+                color: "#2c3e50"
+            },
+            legend: {
+                display: true,
+                labels: {
+                    color: "#34495e",
+                    font: {
+                        size: 14
                     }
                 }
-            });
-        
-            const barCtx = document.getElementById("barChart").getContext("2d");
-            barChart = new Chart(barCtx, {
-                type: "bar",
-                data: {
-                    labels: ["Length (m)", "Pieces"],
-                    datasets: [{
-                        label: "Pieces vs Length",
-                        data: [0, 0],
-                        backgroundColor: ["#ff5733", "#00c3ff"],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
+            },
+            tooltip: {
+                backgroundColor: "#fefefe",
+                titleColor: "#2c3e50",
+                bodyColor: "#34495e",
+                borderColor: "#ddd",
+                borderWidth: 1,
+                callbacks: {
+                    label: function (context) {
+                        return `${context.label}: ${context.raw}`;
+                    }
                 }
-            });
-        }
-        
-        function updateCharts() {
-            if (lineChart) {
-                lineChart.data.labels = dataBuffer.timestamps;
-                lineChart.data.datasets[0].data = dataBuffer.speeds;
-                lineChart.update();
             }
-        
-            if (barChart) {
-                const latestLength = dataBuffer.lengths[dataBuffer.lengths.length - 1] || 0;
-                const latestPieces = dataBuffer.pieces[dataBuffer.pieces.length - 1] || 0;
-                barChart.data.datasets[0].data = [latestLength, latestPieces];
-                barChart.update();
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: "📌 Parameters",
+                    font: {
+                        size: 16,
+                        weight: "bold"
+                    },
+                    color: "#ff5733"
+                },
+                ticks: {
+                    color: "#2c3e50",
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: "📦 Values",
+                    font: {
+                        size: 16,
+                        weight: "bold"
+                    },
+                    color: "#3498db"
+                },
+                ticks: {
+                    color: "#2c3e50",
+                    font: {
+                        size: 14
+                    }
+                },
+                grid: {
+                    color: "#ecf0f1"
+                }
             }
         }
-        
-        setInterval(fetchChartData, 2000);
-        renderCharts();
-        fetchChartData();
-        </script>
-        <style>
-            /* Chart Section */
+    }
+});
+}
+
+function updateCharts() {
+    if (lineChart) {
+        lineChart.data.labels = dataBuffer.timestamps;
+        lineChart.data.datasets[0].data = dataBuffer.speeds;
+        lineChart.update();
+    }
+
+    if (barChart) {
+        const latestLength = dataBuffer.lengths[dataBuffer.lengths.length - 1] || 0;
+        const latestPieces = dataBuffer.pieces[dataBuffer.pieces.length - 1] || 0;
+        barChart.data.datasets[0].data = [latestLength, latestPieces];
+        barChart.update();
+    }
+}
+
+setInterval(fetchChartData, 2000);
+renderCharts();
+fetchChartData();
+</script>
+
+<style>
+/* Chart Section */
 .charts-wrapper {
     display: flex;
     gap: 20px;
@@ -134,36 +237,37 @@
 
 /* Chart Box */
 .chart-card {
-    border: 2px solid black;  
+    border: 2px solid black;
     flex: 1;
-    background: rgb(133 187 245 / 40%);
+    background: rgba(255, 255, 255, 0.4);
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
-    width: 550px;  /* FIXED WIDTH */
-    height: 500px; /* FIXED HEIGHT */
+    width: 550px;
+    height: 500px;
     max-width: 600px;
-    /*backdrop-filter: blur(10px);*/
-    overflow: hidden; /* Prevents graph overflow */
+    overflow: hidden;
     position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .chart-card:hover {
     transform: scale(1.03);
     box-shadow: 0px 6px 20px rgba(255, 255, 255, 0.2);
 }
-/* Ensure Canvas is Scaled Correctly */
+
 .chart-card canvas {
     width: 100% !important;
     height: 400px !important;
     display: block;
 }
 
-/* Prevent Graph Lines from Exceeding Container */
-.chart-container {
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Prevents axes from overflowing */
-    padding: 10px; /* Space for axis labels */
+.chart-card h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #222;
 }
 
 /* Responsive Fixes */
@@ -176,6 +280,5 @@
         min-width: unset;
     }
 }
-
-        </style>
+</style>
 {% endblock %}

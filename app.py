@@ -302,7 +302,7 @@ def download_data():
 @app.route("/report")
 @login_required
 def report():
-    return render_template("report.html")
+    return render_template("report1.html")
 
 # @app.route('/download-report')
 # def download_report():
